@@ -1,0 +1,6 @@
+discord.py      ~= 1.7.3
+Pillow          ~= 8.2.0
+ImageHash       ~= 4.2.0
+requests        ~= 2.25.1
+python-dotenv   ~= 0.18.0
+matplotlib      ~= 3.4.2
