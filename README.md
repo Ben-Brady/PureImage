@@ -163,4 +163,4 @@ Finally, run the main file
 
 ## Bug Bounty
 
-Any vunerabilities discovered and reported will be rewards in handjobs, however due to social distancing as a subsitute I will reward you with a text based compliments.
+If you find any vunerabilites, just send me an email and I'll try to find some way to payback the favour.
