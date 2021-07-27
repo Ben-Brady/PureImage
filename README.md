@@ -76,9 +76,11 @@ The Channels that a bot will check for reposts in, stored in channel ids.
 
 > "Delete": true/false
 
-If the bot
+If the bot should delete reposts instead of just flagging them for people to see
 
-> "Timeout":
+> "Timeout": 86400
+
+The timeout for people to be able to repost an image in seconds (e.g. 86400 = 60 x 60 x 24 = 1 Day)
 
 #### Porn Filter (Coming Soon)
 
