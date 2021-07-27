@@ -1,105 +1,106 @@
-from Modules import Logger, ImageHash, Guild
+from Modules import Logger, ImageHash, VideoHash,Guilds
 
-import io
 import time
 import sqlite3
 from functools import wraps
 
 
-Log = Logger.Get("Resposts[root]")
+Log = Logger.Get("Resposts")
+Store = "./Data/Database.db"
+conn = sqlite3.connect(Store)
+RecentMessages = set()
 
-# ---------- Repost Section ---------- #
 
-
-class Section:
-    def __init__(self, ID: int) -> None:
-        if (ID != 856868040246296578):
-            breakpoint
-
-        self.ID = ID
-        self.Threshold = 5
-        self.DB = "Data/Hash.db"
-        self.Logger = Logger.Get(f"Resposts[{ID}]")
-        self.SetStore(self.DB)
-
-    def Log(func):
-        @wraps(func)
-        def wrapped(self, *args, **kwargs):
-            Args = tuple([a for a in args if type(a) in (str, int)])
-
-            Start = time.time_ns()
-            try:
-                ReturnValue = func(self, *args, **kwargs)
-            except Exception as e:
-                self.Logger.debug(f"{func.__name__}{Args} Failed")
-                self.Logger.warning(e.__traceback__)
+def MeasureSpeed(func):
+    def Wrapper(*args,**kwargs):
+        reprArgs = []
+        for Arg in args:
+            if type(Arg) in (str, int):
+                reprArgs.append(Arg)
             else:
-                Taken = round((time.time_ns() - Start) / 1000000)
-                self.Logger.debug(f"{func.__name__}{Args} in {Taken} ms")
+                reprArgs.append(str(type(Arg)))
+        reprArgs = tuple(reprArgs)
+        
+        Start = time.time_ns()
+        try:
+            ReturnValue = func(*args, **kwargs)
+        except:
+            Log.exception(f"Exception in {func.__name__}{reprArgs}:")
+        else:
+            Taken = round((time.time_ns() - Start) / 1_000_000)
+            Log.debug(f"{func.__name__}{reprArgs} in {Taken} ms")
+            return ReturnValue
 
-                return ReturnValue
-        return wrapped
+    return Wrapper
 
-    @Log
-    def Add(self, ID: int, Img: io.BytesIO):
-        Hash = ImageHash.Hash(Img)
-        with sqlite3.connect(self.DB) as conn:
-            conn.execute("Insert into PHASHES VALUES(?,?,?,?);",
-                         (ID, self.ID, int(time.time()), bytes(Hash)))
 
-    @Log
-    def Remove(self, ID):
-        with sqlite3.connect(self.DB) as conn:
-            conn.execute("Delete from PHASHES where ID = ?", (ID,))
+@MeasureSpeed
+def AddImage(ID: int, guildID: int, image: bytes):
+    Hash = ImageHash.Hash(image)
+    with conn:
+        if ID not in RecentMessages:
+            conn.execute(
+                "Insert into MESSAGES VALUES(?,?);",
+                (ID, guildID))
+            RecentMessages.add(ID)
+        conn.execute(
+            "Insert into HASHES Values(?,?,'image');",
+            (ID, Hash))
 
-    @Log
-    def Get(self, ID):
-        with sqlite3.connect(self.DB) as conn:
-            return conn.execute("Select * from PHASHES where ID = ?", (ID,))
+@MeasureSpeed
+def AddVideo(ID: int, guildID: int, video: bytes):
+    Hash = VideoHash.Hash(video)
+    with conn:
+        if ID not in RecentMessages:
+            conn.execute(
+                "Insert into MESSAGES VALUES(?,?);",
+                (ID, guildID))
+            RecentMessages.add(ID)
+        conn.execute(
+            "Insert into HASHES Values(?,?,'video');",
+            (ID, Hash))
 
-    @Log
-    def Get(self, ID):
-        with sqlite3.connect(self.DB) as conn:
-            return conn.execute("Select * from PHASHES where ID = ?", (ID,))
 
-    @Log
-    def GetAll(self):
-        with sqlite3.connect(self.DB) as conn:
-            return conn.execute("Select * from PHASHES where SECTID = ?", (self.ID,))
+@MeasureSpeed
+def Remove(ID: int):
+    with conn:
+        conn.execute(
+            "Delete from HASHES where MsgID = ?",
+            (ID,))
 
-    @Log
-    def Check(self, Img: io.BytesIO):
-        with sqlite3.connect(self.DB) as conn:
-            Hashes = conn.execute(
-                "Select ID,HASH from PHASHES where SECTID = ?", (self.ID,))
-        NewHash = ImageHash.Hash(Img)
 
-        for ID, Hash in Hashes:
-            if ImageHash.Distance(list(Hash), NewHash) < self.Threshold:
-                return ID
+@MeasureSpeed
+def CheckImage(guildID, file: bytes):
+    Guild = Guilds.Get(guildID)
+    NewHash = ImageHash.Hash(file)
+    with conn:
+        Hashes = conn.execute("""
+            select
+                MESSAGES.ID,HASHES.Hash
+            from
+                MESSAGES inner join HASHES
+                    on MESSAGES.ID = HASHES.MsgID
+            where
+                MESSAGES.Guild = ? and HASHES.Type = 'image'
+        """, (guildID,))
 
-    def SetStore(self, Store):
-        with sqlite3.connect(Store) as conn:
-            self.Logger.debug(f"Database Connection Established at '{Store}''")
+    for MsgID, Hash in Hashes:
+        if ImageHash.Distance(list(Hash), NewHash) < Guild.rThreshold:
+            return MsgID
 
-            Tables = conn.execute("""
-                                SELECT
-                                    name
-                                FROM
-                                    sqlite_master
-                                WHERE
-                                    type ='table' AND
-                                    name NOT LIKE 'sqlite_%';
-                                """)
-
-            if ('PHASHES',) not in Tables:
-                self.Logger.debug(f"Phashes Table Regenerated at [{Store}]")
-                conn.execute("""
-                            Create table PHASHES(
-                                ID      INT  PRIMARY KEY  NOT NULL,
-                                SECTID  INT              NOT NULL,
-                                TIME    INT               NOT NULL,
-                                HASH    BLOB              NOT NULL
-                            );""")
-
-        self.DB = Store
+@MeasureSpeed
+def CheckVideo(guildID, file: bytes):
+    NewHash = VideoHash.Hash(file)
+    with conn:
+        Hashes = conn.execute("""
+            Select
+                MESSAGES.ID, HASHES.Hash
+            from
+                MESSAGES inner join HASHES
+                    on MESSAGES.ID = HASHES.MsgID
+            where
+                MESSAGES.GuildID = ? and HASHES.Hash = ? and HASHES.Type = 'video'
+        """, (guildID, NewHash))
+    Hash = Hashes.fetchone()
+    if Hash:
+        return Hashes[0]

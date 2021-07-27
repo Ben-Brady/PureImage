@@ -1,9 +1,10 @@
 from Modules import Logger
 
 import io
-from PIL import Image
 import imagehash as im
+from PIL import Image
 
+Image.MAX_IMAGE_PIXELS = 10_000_000
 Log = Logger.Get("ImageHash")
 
 
@@ -14,13 +15,14 @@ def Hash(img: bytes) -> list:
     return bytes.fromhex(str(PHash))
 
 
+# TODO: Mew .10 feature: int.count_bits(), use with XOR for hamming distance
 def Distance(Hash: bytes, Other: bytes) -> int:
-    # Turn bytes into a bit array
-    def Conv(x): return bin(int.from_bytes(x, "big"))
+    if len(Hash) != len(Other):
+        raise OverflowError("Byte lengths do not match")
 
-    Total = 0
-    for a, b in zip(Conv(Hash), Conv(Other)):
-        if a != b:
-            Total += 1
-
-    return Total
+    for x, y in zip(Hash, Other):
+        Difference = 0
+        XOR = x ^ y
+        for bit in range(8):
+            Difference += (XOR >> bit) & 1
+    return Difference
