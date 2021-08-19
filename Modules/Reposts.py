@@ -78,10 +78,11 @@ def CheckImage(guildID, file: bytes):
             select
                 MESSAGES.ID,HASHES.Hash
             from
-                MESSAGES inner join HASHES
-                    on MESSAGES.ID = HASHES.MsgID
+                MESSAGES
+            inner join
+                HASHES on MESSAGES.ID = HASHES.MsgID
             where
-                MESSAGES.Guild = ? and HASHES.Type = 'image'
+                MESSAGES.GuildID = ? and HASHES.Type = 'image'
         """, (guildID,))
 
     for MsgID, Hash in Hashes:
