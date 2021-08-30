@@ -2,10 +2,13 @@ from Modules import Logger
 from Cogs import RepostCog, SettingsCog, VanityCog
 
 import os
+from pathlib import Path
 from discord.ext import commands
 
 from dotenv import load_dotenv
 load_dotenv()
+
+os.chdir(Path(__file__).absolute().parent)
 
 Log = Logger.Get("root")
 bot = commands.Bot("~")
