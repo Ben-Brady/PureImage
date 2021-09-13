@@ -158,4 +158,4 @@ Finally, run the main file
 
 ## Contributing
 
-If you find any vulnerabilities, problems, just send me an email and I'll try to find some way to payback the favour.
+If you find any vulnerabilities, problems, just send me an [email](mailto:benbradybusiness@gmail.com) or file an [issue](https://github.com/Ben-Brady/PureImage/issues).
