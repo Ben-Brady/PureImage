@@ -1,6 +1,5 @@
 # PureImage
 
-
 ### QuickStart
 
 ### Invite the Bot
@@ -66,39 +65,39 @@ Many of the commands rely on channel ids, this a unique number that indenifies a
 
 #### Reposts
 
-> "Enabled": true/false
-
 If the repost component of the bot
 
-> "Channels": [1,2,3]
+> "Enabled": true/false
 
 The Channels that a bot will check for reposts in, stored in channel ids.
 
-> "Delete": true/false
+> "Channels": [1,2,3]
 
 If the bot should delete reposts instead of just flagging them for people to see
 
-> "Timeout": 86400
+> "Delete": true/false
 
 The timeout for people to be able to repost an image in seconds (e.g. 86400 = 60 x 60 x 24 = 1 Day)
 
-#### Porn Filter (Coming Soon)
+> "Timeout": 86400
 
-> "Enabled": false,
+#### Porn Filter (Coming Soon)
 
 If the Porn Filter Component should be enabled
 
-> "NSFWChannels": true/false
+> "Enabled": false,
 
 If the bot should use the NSFW tag to see what channels it should check.
 
-> "IgnoreChannels": [1,2,3]
+> "NSFWChannels": true/false
 
 the channels that the bot will ignore, for more control.
 
-> "Threshold": 1.0 - 0.0
+> "IgnoreChannels": [123,124,125]
 
 The threshold used for determining if something is porn, between 1 and 0. 1 is confirmed and 0 is completely safe.
+
+> "Threshold": 0.0 - 1.0
 
 #### Messages
 
@@ -122,7 +121,6 @@ Example:
 ```python
     "{AUTHOR}, Uh oh a repost you stole from {ORIGIN}"
 ```
-
 
 > "pDelete": ["> Hmmmmmmm, You seem to have posted porn. I ask thou... why?"]
 
