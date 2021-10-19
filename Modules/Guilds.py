@@ -104,7 +104,7 @@ def Get(ID: int) -> Guild:
 def Check(ID: int) -> Guild:
     with conn:
         Settings = conn.execute(
-            "Select SETTINGS fromSERVERS where ID = ?",
+            "Select SETTINGS from SERVERS where ID = ?",
             (ID,),)
 
     return len(Settings.fetchall()) == 1
