@@ -6,11 +6,6 @@ from discord.ext import commands, tasks
 
 Log = Logger.Get("VanityCog")
 
-Statuses = [
-    [discord.Streaming, "over your memes channels"],
-    [discord.Game, "with your users"]
-]
-
 
 class Cog(commands.Cog):
     """A cog for handling vanity functions such as Status changes"""
@@ -19,14 +14,15 @@ class Cog(commands.Cog):
         self.bot = bot
         Log.info("Initialised")
 
-    @tasks.loop(seconds=2)
-    async def ChangeStatus(self):
-        Selection = random.randint(0, len(Statuses) - 1)
-        Activity, Message = Statuses[Selection]
-        await bot.change_presence(game=discord.Game(name="Test", type=1))
-        # await self.bot.change_presence(activity=Activity(name=Message))
-        Log.debug(f"Changed presence to status {Selection}")
-
-    @commands.guild_only()
-    async def UpdateSettings(self, ctx: commands.Context):
-        Guild = Guilds.Get(ctx.guild.id)
+    @commands.Cog.listener()
+    async def on_guild_join(self, guild: discord.Guild):
+        "Announcement that a guild has invited the bot"
+        owner = self.bot.fetch_user(self.bot.owner_id)
+        owner.send(f"Yay, {guild.name} is the {len(self.bot.guilds)}th server.")
+    
+    # @tasks.loop(seconds=5)
+    # async def ChangeStatus(self):
+    #     Selection = random.randint(0, len(Statuses) - 1)
+    #     Activity, Message = Statuses[Selection]
+    #     # await self.bot.change_presence(activity=Activity(name=Message))
+    #     Log.debug(f"Changed presence to status {Selection}")
