@@ -6,13 +6,7 @@
         "Channels": [864282912631291905],
         "Timeout":604800
     },
-    "PornFilter": {
-        "Enabled": false,
-        "IgnoreChannels": [],
-        "Threshold": 0.9
-    },
     "Messages":{
-        "rDetect": ["> {AUTHOR},You seem to have posted a repost"],
-        "pDelete": ["> Hmmmmmmm, You seem to have posted porn. I ask thou... why?"]
+        "rDetect": ["> {AUTHOR},You seem to have posted a repost"]
     }
 }

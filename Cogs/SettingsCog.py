@@ -1,5 +1,5 @@
 from io import StringIO
-from Modules import Logger, PornDetector, Guilds
+from Modules import Logger, Guilds
 
 from pathlib import Path
 import requests
@@ -12,7 +12,7 @@ SettingsLink = r"https://github.com/ThatGayKid/PureImage"
 
 
 class Cog(commands.Cog):
-    """A Cog for checking new messages for Porn"""
+    """A Cog for changing the bot settings"""
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot

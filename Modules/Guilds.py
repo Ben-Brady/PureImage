@@ -19,10 +19,6 @@ class Guild:
     rChannels = list
     rTimeout = int
 
-    pEnabled = bool
-    pThreshold = float
-    pChannels = list
-
     Messages = dict
 
     def __init__(self, ID):
@@ -57,11 +53,6 @@ class Guild:
                 "Delete": self.rDelete,
                 "Timeout": self.rTimeout
             },
-            "PornFilter": {
-                "Enabled": self.pEnabled,
-                "IgnoreChannels": self.pChannels,
-                "Threshold": self.pThreshold
-            },
             "Messages": self.Messages
         }
 
@@ -83,22 +74,12 @@ class Guild:
         assert type(JSON["Reposts"]["Channels"]) == list
         assert type(JSON["Reposts"]["Delete"]) == bool
         assert type(JSON["Reposts"]["Timeout"]) == int
-
-        assert type(JSON["PornFilter"]["Enabled"]) == bool
-        assert type(JSON["PornFilter"]["IgnoreChannels"]) == list
-        assert type(JSON["PornFilter"]["Threshold"]) == float
-
+        
         assert type(JSON["Messages"]["rDetect"]) == list
-        assert type(JSON["Messages"]["pDelete"]) == list
 
         for x in JSON["Reposts"]["Channels"]:
             assert type(x) == int
-        for x in JSON["PornFilter"]["IgnoreChannels"]:
-            assert type(x) == int
-
         for x in JSON["Messages"]["rDetect"]:
-            assert type(x) == str
-        for x in JSON["Messages"]["pDelete"]:
             assert type(x) == str
 
         self.rEnabled = JSON["Reposts"]["Enabled"]
@@ -106,13 +87,8 @@ class Guild:
         self.rDelete = JSON["Reposts"]["Delete"]
         self.rTimeout = JSON["Reposts"]["Timeout"]
 
-        self.pEnabled = JSON["PornFilter"]["Enabled"]
-        self.pChannels = JSON["PornFilter"]["IgnoreChannels"]
-        self.pThreshold = JSON["PornFilter"]["Threshold"]
-
         self.Messages = {
-            "rDetect": JSON["Messages"]["rDetect"],
-            "pDelete": JSON["Messages"]["pDelete"]
+            "rDetect": JSON["Messages"]["rDetect"]
         }
         self.Save()
 

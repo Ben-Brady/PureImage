@@ -22,6 +22,5 @@ async def on_ready():
 bot.add_cog(RepostCog.Cog(bot))
 bot.add_cog(SettingsCog.Cog(bot))
 # bot.add_cog(VanityCog.Cog(bot))
-# bot.add_cog(PornCog.Cog(bot))
 
 bot.run(os.getenv("TOKEN"))
