@@ -154,6 +154,6 @@ cython_debug/
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,python
 .vscode
 ./Test/Section.db
-./src/Data/Database.db
-./src/Data/Log.csv
+*/Data/Database.db
+*/Data/Log.csv
 *.env*
