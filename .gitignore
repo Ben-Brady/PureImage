@@ -161,4 +161,4 @@ test_Filter.py
 Test/Section.db
 output
 Data/Database.db
-.env
+*.env*
