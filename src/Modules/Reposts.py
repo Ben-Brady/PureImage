@@ -1,12 +1,16 @@
 from Modules import Logger, ImageHash, VideoHash,Guilds
 
 import time
+import os
 import sqlite3
 from functools import wraps
 
 
 Log = Logger.Get("Resposts")
-Store = "./Data/Database.db"
+if os.getenv("DEPLOYMENT") == "TESTING":
+    Store = ":memory:"
+else:
+    Store = "./Data/Database.db"
 conn = sqlite3.connect(Store)
 RecentMessages = set()
 

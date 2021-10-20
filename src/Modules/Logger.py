@@ -23,7 +23,10 @@ def Get(Name):
 
     # ---------- Stream Handler ---------- #
     Stream = logging.StreamHandler()
-    Stream.setLevel(logging.INFO)
+    if os.getenv("DEPLOYMENT") == "TESTING":
+        Stream.setLevel(logging.DEBUG)
+    else:
+        Stream.setLevel(logging.INFO)
     Stream.setFormatter(FORMAT)
     Logger.addHandler(Stream)
     if coloredlogs:
