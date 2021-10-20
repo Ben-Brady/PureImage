@@ -152,13 +152,8 @@ cython_debug/
 .ionide
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,python
-Test/Images
 .vscode
-./test_timing.py
-CompareImages.py
-test_Filter.py
-./Deprecated
-Test/Section.db
-output
-Data/Database.db
+./Test/Section.db
+./src/Data/Database.db
+./src/Data/Log.csv
 *.env*
