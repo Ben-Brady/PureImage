@@ -8,27 +8,40 @@ First, click this [link](https://discord.com/oauth2/authorize?client_id=85645142
 
 ### Load up some settings
 
-The bot handles settings through a settings.json file, this handles options such as what channels the bot is active on. Due to this, the bot won't work when you first invite it and you will have to set it up. The instructions will be messaged to the server owner when you invite the bot.
+The bot handles settings through a settings.json file, this handles options such as what channels the bot is active on. Due to this, the bot won't work when you first invite it and you will have to set it up. The instructions will be messaged to the server owner when you invite the bot, these instructions can be found in the QuickStart.md file.
 
-## Features
+## Repost Filter
 
-### Repost Filter
-
-By creating a PHash of every image posted into the selected channels and comparing it against new images, reposts are able to be detected according to the users settings. The system supports detection of compressed, cropped or even hue-shifted images by making use of multiple hashing algorithms. Sadly, due to performance reasons the bot won't process images larger than 10MP, this will hopefully be fixed when the Porn Filter is added.
-
-### Porn Filter(Coming Soon)
-
-Using the [DeepDanbooru](https://github.com/KichangKim/DeepDanbooru) and [nude.js](https://github.com/pa7/nude.js) projects, PureImage is able detect if a post is considered pornographic and either flag or delete it depending on the server configuration. Additionally, several other porn detection libraries such nude.py are used, the thresholds and settings can all be customized in the settings.
+By creating a Perceptual Image Hash of every image posted in the selected channels and comparing against the hashes of already posted images, the bot can detect when an image is too similar to a past image and take action based on your settings. Using a perceptual hash prevents lower quality versions of the same image not being detected. Sadly due to performance reasons, images will be skipped if they're larger than 10MegaPixels or 4MB, the megapixel issue may be removed in the future but the 4MB limit will most likely not.
 
 ### Coming Soon
 
 New Features Coming Soon:
 
-- Additional Customization (Ability to change Messages, Config ...etc.)
-- Porn Filter
-- Better Repost Detection
+- Easier and More Diverse Customization
+- Improved Repost Detection by making use of multiple hashes
+- Making use of of a new [hash database](https://github.com/AiLECS/pyMIH)
+- Improved Video Repost Detect. (Currently using SHA-256)
 
 ## Changelog
+
+### [October 19] V1.1
+
+- \[[\#5eb7c3](https://github.com/Ben-Brady/PureImage/commit/5eb7c3395292974a8e6894809cf7c35fa7fe2d89)\]: Moved default settings to Guild.py instead of settings.json
+- \[[\#c1e8da](https://github.com/Ben-Brady/PureImage/commit/c1e8da9512ee9902de1b8cdf50e271cec5f471d7)\]: Chnaged Log to bs stored in .ssv to avoid comma injection
+- \[[\#091498](https://github.com/Ben-Brady/PureImage/commit/091498c43faa087132042a979a2c90e6070068d8)\]: Rewrote most of Repost Handlers
+- \[[\#69c010](https://github.com/Ben-Brady/PureImage/commit/69c010fb5eba6c51f6d96af346fcf2cc9298f259)\]: Changed how Guild's settings are stored
+- \[[\#56da4a](https://github.com/Ben-Brady/PureImage/commit/56da4acfe7cc326a8f78e5fc64f078bf87378b81)\]: 56da4ac: Removed matplotlib from dependencies
+- \[[\#54ce43](https://github.com/Ben-Brady/PureImage/commit/54ce43f0922c75a1b77c478787e395682666e998)\]: Fixed Vanity Cog not being correctly initiated
+- \[[\#1b3d91](https://github.com/Ben-Brady/PureImage/commit/1b3d910f98d35635ad75ffd6d85b3100376824ac)\]: Updated .gitignore
+- \[[\#d186e5](https://github.com/Ben-Brady/PureImage/commit/d186e5ddb64e5082f1dbd03e4937b1d07c58837a)\]: Changled logging strucutre to differ between stream and file. Now file logging will be saved as .csv files.
+- \[[\#c8f5d5](https://github.com/Ben-Brady/PureImage/commit/c8f5d5686a60bd984b1fc1733c6e5032e51f8b09)\]: Changed file structure and added test data to prepare for automated testing enviroment
+- \[[\#26d7f3](https://github.com/Ben-Brady/PureImage/commit/26d7f37b89efbacb13146ccf20885d7a90bf1e0d)\]: Updated .gitignore in an attempt to prevent .env from being updated
+- \[[\#fb25e3](https://github.com/Ben-Brady/PureImage/commit/fb25e3ec5c3d98eb32905fdfce408d063d2f6b95)\]: Removed example .env to prevent token leakage when making commits
+- \[[\#45a5bf](https://github.com/Ben-Brady/PureImage/commit/45a5bf8f8582e0335846308488a09b55d03c80ac)\]: Added an alert for the bot owner for when a guild invites the bot
+- \[[\#ee6f77](https://github.com/Ben-Brady/PureImage/commit/ee6f77e8bd6b36a0941ad587f4ad9801a814cc7d)\]: Setup only creates tables if they don't exist
+- \[[\#fe0ae6](https://github.com/Ben-Brady/PureImage/commit/fe0ae665599f3be1ff6a219b6e8f0182baa69943)\]: Removed all references to the porn detector, discord's built-in detection would likely perform much better.
+- \[[\#43c5d2](https://github.com/Ben-Brady/PureImage/commit/43c5d2aa04604183f5dd5406995d214a044453f6)\]: Fixed an type on the guilds.Check SQL statement that caused an error, this caused the lack of on join message.
 
 ### [July 15] Public Release
 
@@ -48,94 +61,6 @@ New Features Coming Soon:
 
 - Added Repost Cog, allowing for repost detection of duplicate images.
 
-## Config
-
-Compared to other bots, the server config isn't set and change via commands. Instead it's stored in [JSON](https://en.wikipedia.org/wiki/JSON) which a server owner and message to the bot. This makes it easier for server owners to setup the bot as they don't have to rely on bot commands, instead all options can be changed using a preset. In order to change the bots settings you should send it a [settings.json] file in a guild chat message using the '~set' command.
-
-### JSON
-
-The settings are stored in JSON, this is text based file format that is easy for computer and humans to understand. In order to help editing these settings try using an [Online Editor](https://jsoneditoronline.org/#left=cloud.f69c4ee4a2454ad58eab6effaa5e5e93) that provides syntax highlighting.
-
-### Channel IDs
-
-Many of the commands rely on channel ids, this a unique number that identifies a discord channel. In order to get these IDs either follow this [Guide](https://support.discord.com/hc/en-us/articles/206346498) or use the '~id' command.
-
-### Settings
-
-#### Reposts
-
-If the repost component of the bot
-
-> "Enabled": true/false
-
-The Channels that a bot will check for reposts in, stored in channel ids.
-
-> "Channels": [1,2,3]
-
-If the bot should delete reposts instead of just flagging them for people to see
-
-> "Delete": true/false
-
-The timeout for people to be able to repost an image in seconds (e.g. 86400 = 60 x 60 x 24 = 1 Day)
-
-> "Timeout": 86400
-
-#### Porn Filter (Coming Soon)
-
-If the Porn Filter Component should be enabled
-
-> "Enabled": false,
-
-If the bot should use the NSFW tag to see what channels it should check.
-
-> "NSFWChannels": true/false
-
-the channels that the bot will ignore, for more control.
-
-> "IgnoreChannels": [123,124,125]
-
-The threshold used for determining if something is porn, between 1 and 0. 1 is confirmed and 0 is completely safe.
-
-> "Threshold": 0.0 - 1.0
-
-#### Messages
-
-> "rDetect": ["> {AUTHOR},You seem to have posted a repost"],
-
-The messages sent to someone when their repost is detected, randomly chosen. Additionally, the text will can formatted using the format strings below, just surround the word with semicolons:
-
-Format Text:
-
-    - author
-      - The repost message's author's name.
-    - AUTHOR
-      - Pinging the repost message's author.
-    - origin
-      - The original author's name.
-    - ORIGIN
-      - Pinging the original author.
-
-Formatting Example
-
-`"{AUTHOR}, Uh oh a repost you stole from {ORIGIN}"`
-
-> "pDelete": ["> Hmmmmmmm, You seem to have posted porn. I ask thou... why?"]
-
-The messages sent to someone when their post is detected as porn, randomly chosen. Additionally, the text will can formatted using the format strings below, just surround the word with semicolons:
-
-Format Text:
-
-    - author
-      - The repost message's author's name.
-    - AUTHOR
-      - Pinging the repost message's author.
-    - certainty
-      - The certainty that this image is porn.
-
-Formatting Example
-
-`["{AUTHOR}, Uh oh I'm {certainty} that's porn","{AUTHOR}, I think that might be porn"]`
-
 ## Hosting the Bot
 
 I'm completely fine with you hosting the bot, even on a large scale. However, just don't claim to have made the bot and make sure you post a link to this repo. After that it's fair game.
@@ -146,10 +71,10 @@ In order to host the bot just install the python requirements using the requirem
 
 Then place your bot token into the .env file
 
-> TOKEN = "BOT TOKEN GOES HERE"
+> TOKEN = "BOT_TOKEN"
 
-Then run the setup.py file in order to regenerate the databases.
->
+Then run the setup.py file in order to regenerate the databases and perform other setup.
+
 > python setup.py
 
 Finally, run the main file
@@ -158,4 +83,8 @@ Finally, run the main file
 
 ## Contributing
 
-If you find any vulnerabilities, problems, just send me an [email](mailto:benbradybusiness@gmail.com) or file an [issue](https://github.com/Ben-Brady/PureImage/issues).
+If you find any vulnerabilities/problems, just send me an [email](mailto:benbradybusiness@gmail.com) or file an [issue](https://github.com/Ben-Brady/PureImage/issues).
+
+If you wish to develop, set the enviroment variable to increase verbosity and store the database in memory.
+
+> DEPLOYMENT = "TESTING"
