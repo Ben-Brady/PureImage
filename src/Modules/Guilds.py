@@ -15,12 +15,12 @@ conn = sqlite3.connect(DBSTORE)
 Guilds = {}
 
 class Guild:
-    rEnabled:bool; "Repost Filtering Enabled?"
-    rDelete:bool; "Reposts Should Be Deleted?"
-    rTimeout:int; "Time in seconds for a post to be too old"
-    rThreshold:int; "Repost Threshold"
-    rChannels:List[int]; "The list of channels for reposts to be captured"
-    rDetected_msg:List[str]; "The list of recently deleted messages"
+    rEnabled:bool = True
+    rDelete:bool = True
+    rTimeout:int = 604800
+    rThreshold:int = 10
+    rChannels:List[int] = [864282912631291905]
+    rDetected_msg:List[str] = ["> {AUTHOR},You seem to have posted a repost"]
     
     def __init__(self, ID):
         Log.debug(f"Guild {ID} retrieved")
@@ -33,8 +33,6 @@ class Guild:
         if Settings:
             self.LoadJSON(Settings[0])
         else:
-            with open(SETTINGS_STORE) as fObj:
-                self.LoadJSON(fObj.read())
             with conn:
                 conn.execute(
                     "Insert into GUILDS values(?,?);",
