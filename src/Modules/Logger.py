@@ -7,7 +7,7 @@ try:
 except:
     coloredlogs = None
 
-FILEFORMAT = "%(created)f,%(relativeCreated)d,%(levelname)s,%(name)s,%(message)s"
+FILEFORMAT = "%(created)f;%(relativeCreated)d;%(levelname)s;%(name)s;%(message)s"
 STREAMFORMAT = "[%(asctime)s] %(name)s: %(message)s"
 
 def Get(Name):
@@ -15,7 +15,7 @@ def Get(Name):
     Logger.setLevel(logging.DEBUG)
 
     # ----------- File Handler ----------- #
-    FileLogger = logging.FileHandler("./Data/Log.csv")
+    FileLogger = logging.FileHandler("./Data/Log.ssv")
     FileLogger.setLevel(logging.DEBUG)
     FileLogger.setFormatter(logging.Formatter(FILEFORMAT))
     Logger.addHandler(FileLogger)

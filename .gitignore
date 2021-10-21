@@ -155,5 +155,5 @@ cython_debug/
 .vscode
 ./Test/Section.db
 */Data/Database.db
-*/Data/Log.csv
+*/Data/Log*
 *.env*
