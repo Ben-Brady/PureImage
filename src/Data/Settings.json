@@ -1,12 +1,8 @@
 {
-    "Reposts": {
-        "Enabled": true,
-        "Threshold":5,
-        "Delete": true,
-        "Channels": [864282912631291905],
-        "Timeout":604800
-    },
-    "Messages":{
-        "rDetect": ["> {AUTHOR},You seem to have posted a repost"]
-    }
+    "rEnabled": true,
+    "rDelete": true,
+    "rTimeout": 604800,
+    "rThreshold": 5,
+    "rChannels": [864282912631291905],
+    "rDetected_msg": ["> {AUTHOR},You seem to have posted a repost"]
 }

@@ -72,7 +72,7 @@ class Cog(commands.Cog):
 
                 if Delta < Guild.rTimeout:
                     BotMSG = await OriginMSG.reply(
-                        Guild.GetMsg("rDetect").format(
+                        Guild.msgRepostDetected.format(
                             AUTHOR=msg.author.mention,
                             author=msg.author.name,
                             ORIGIN=OriginMSG.author.mention,

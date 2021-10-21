@@ -1,26 +1,27 @@
-from Modules import Reposts, Logger
+from typing import Dict, List
+from Modules import Logger
 
 import json
 import random
 import sqlite3
 
-Log = Logger.Get("Guilds")
-Store = "./Data/Database.db"
-SettingsStore = "./Data/Settings.json"
-conn = sqlite3.connect(Store)
-Guilds = {}
 MaxCache = 250
+DBSTORE = "./Data/Database.db"
+SETTINGS_STORE = "./Data/Settings.json"
 
+Log = Logger.Get("Guilds")
+conn = sqlite3.connect(DBSTORE)
+
+Guilds = {}
 
 class Guild:
-    rEnabled = bool
-    rDelete = bool
-    rThreshold = int
-    rChannels = list
-    rTimeout = int
-
-    Messages = dict
-
+    rEnabled:bool; "Repost Filtering Enabled?"
+    rDelete:bool; "Reposts Should Be Deleted?"
+    rTimeout:int; "Time in seconds for a post to be too old"
+    rThreshold:int; "Repost Threshold"
+    rChannels:List[int]; "The list of channels for reposts to be captured"
+    rDetected_msg:List[str]; "The list of recently deleted messages"
+    
     def __init__(self, ID):
         Log.debug(f"Guild {ID} retrieved")
         self.ID = ID
@@ -32,64 +33,69 @@ class Guild:
         if Settings:
             self.LoadJSON(Settings[0])
         else:
-            with open(SettingsStore) as fObj:
+            with open(SETTINGS_STORE) as fObj:
                 self.LoadJSON(fObj.read())
             with conn:
                 conn.execute(
                     "Insert into GUILDS values(?,?);",
-                    (self.ID, self.SettingJSON)
+                    (self.ID, self.Settingjson)
                 )
 
     @property
-    def SettingJSON(self) -> str:
+    def Settingjson(self) -> str:
         return json.dumps(self.Settings, indent=4, sort_keys=True)
 
     @property
     def Settings(self) -> dict:
         return {
-            "Reposts": {
-                "Enabled": self.rEnabled,
-                "Channels": self.rChannels,
-                "Delete": self.rDelete,
-                "Timeout": self.rTimeout
-            },
-            "Messages": self.Messages
+            "rEnabled": self.rEnabled,
+            "rDelete": self.rDelete,
+            "rTimeout": self.rTimeout,
+            "rThreshold": self.rThreshold,
+            "rChannels": self.rChannels,
+            "rDetected_msg": self.rDetected_msg
         }
 
-    def GetMsg(self, msg: str) -> str:
-        Messages = self.Messages[msg]
-        return random.choice(Messages)
+    @property
+    def msgRepostDetected(self) -> str:
+        return random.choice(self.rDetected_msg)
 
     def Save(self):
+        Log.debug(f"Saving guild{self.ID}'s Settings")
         with conn:
             conn.execute(
                 "Update GUILDS set SETTINGS = ? where ID = ?;",
-                (self.SettingJSON, self.ID)
+                (self.Settingjson, self.ID)
             )
 
     def LoadJSON(self, JSON: str):
-        JSON = json.loads(JSON)
-
-        assert type(JSON["Reposts"]["Enabled"]) == bool
-        assert type(JSON["Reposts"]["Channels"]) == list
-        assert type(JSON["Reposts"]["Delete"]) == bool
-        assert type(JSON["Reposts"]["Timeout"]) == int
+        TypeLookup = {
+            "rEnabled": [bool],
+            "rDelete": [bool],
+            "rTimeout": [int],
+            "rThreshold": [list,str],
+            "rChannels": [list,int],
+            "rDetected_msg": [list,int]
+            }
         
-        assert type(JSON["Messages"]["rDetect"]) == list
+        Log.debug(f"Loading Guild {self.ID} from JSON")
+        JSON = json.loads(JSON)
+        
+        #! Data Validation Turned Off
+        # for key,value in JSON.items():
+        #     if isinstance(TypeLookup[key][0], list):
+        #         for x in value:
+        #             assert isinstance(x,TypeLookup[key][1])
+        #     else:
+        #         assert isinstance(value,TypeLookup[key][0])
 
-        for x in JSON["Reposts"]["Channels"]:
-            assert type(x) == int
-        for x in JSON["Messages"]["rDetect"]:
-            assert type(x) == str
+        self.rEnabled = JSON["rEnabled"]
+        self.rDelete = JSON["rDelete"]
+        self.rTimeout = JSON["rTimeout"]
+        self.rThreshold = JSON["rThreshold"]
+        self.rChannels = JSON["rChannels"]
+        self.rDetected_msg = JSON["rDetected_msg"]
 
-        self.rEnabled = JSON["Reposts"]["Enabled"]
-        self.rChannels = JSON["Reposts"]["Channels"]
-        self.rDelete = JSON["Reposts"]["Delete"]
-        self.rTimeout = JSON["Reposts"]["Timeout"]
-
-        self.Messages = {
-            "rDetect": JSON["Messages"]["rDetect"]
-        }
         self.Save()
 
 
