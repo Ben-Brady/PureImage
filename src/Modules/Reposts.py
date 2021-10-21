@@ -1,9 +1,9 @@
+from typing import Tuple, Union
 from Modules import Logger, ImageHash, VideoHash,Guilds
 
-import time
 import os
+import time
 import sqlite3
-from functools import wraps
 
 
 Log = Logger.Get("Resposts")
@@ -23,7 +23,8 @@ def MeasureSpeed(func):
                 reprArgs.append(Arg)
             else:
                 reprArgs.append(str(type(Arg)))
-        reprArgs = tuple(reprArgs)
+        reprArgs = str(tuple(reprArgs))
+        reprArgs = reprArgs.replace(";","\;")
         
         Start = time.time_ns()
         try:
@@ -51,6 +52,7 @@ def AddImage(ID: int, guildID: int, image: bytes):
             "Insert into HASHES Values(?,?,'image');",
             (ID, Hash))
 
+
 @MeasureSpeed
 def AddVideo(ID: int, guildID: int, video: bytes):
     Hash = VideoHash.Hash(video)
@@ -74,7 +76,7 @@ def Remove(ID: int):
 
 
 @MeasureSpeed
-def CheckImage(guildID, file: bytes):
+def CheckImage(guildID, file: bytes) -> Tuple[bool,Union[int,None]]:
     Guild = Guilds.Get(guildID)
     NewHash = ImageHash.Hash(file)
     with conn:
@@ -88,18 +90,22 @@ def CheckImage(guildID, file: bytes):
             where
                 MESSAGES.GuildID = ? and HASHES.Type = 'image'
         """, (guildID,))
-
+    OriginID = None
     for MsgID, Hash in Hashes:
-        if ImageHash.Distance(list(Hash), NewHash) < Guild.rThreshold:
-            return MsgID
+        dist = ImageHash.Distance(list(Hash), NewHash)
+        if dist < Guild.rThreshold:
+            OriginID = MsgID
+            break
+    return bool(OriginID), OriginID
+
 
 @MeasureSpeed
-def CheckVideo(guildID, file: bytes):
+def CheckVideo(guildID, file: bytes) -> Tuple[bool,Union[int,None]]:
     NewHash = VideoHash.Hash(file)
     with conn:
         Hashes = conn.execute("""
             Select
-                MESSAGES.ID, HASHES.Hash
+                MESSAGES.ID
             from
                 MESSAGES inner join HASHES
                     on MESSAGES.ID = HASHES.MsgID
@@ -107,5 +113,7 @@ def CheckVideo(guildID, file: bytes):
                 MESSAGES.GuildID = ? and HASHES.Hash = ? and HASHES.Type = 'video'
         """, (guildID, NewHash))
     Hash = Hashes.fetchone()
-    if Hash:
-        return Hashes[0]
+    if len(Hash) > 0:
+        return True,Hashes[0]
+    else:
+        return False,None

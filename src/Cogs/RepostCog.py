@@ -1,9 +1,9 @@
-
+from Modules import Logger, Reposts, Guilds
+from typing import List, Tuple
 from discord.ext import commands
 import discord
-from Modules import Logger, Reposts, Guilds
-
 from datetime import datetime
+
 
 Log = Logger.Get("RepostCog")
 
@@ -13,7 +13,6 @@ class Cog(commands.Cog):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.RecentDeleted = []
         Log.info("Initialised")
 
     @commands.Cog.listener()
@@ -24,77 +23,72 @@ class Cog(commands.Cog):
             return
         if msg.channel.id not in Guild.rChannels:
             return
-        for Attach in msg.attachments:
-            await self.Process(msg, Attach)
 
-    @commands.Cog.listener()
-    async def on_message_delete(self, msg: discord.Message):
-        if msg.author == self.bot:
-            return
-        if msg.id in self.RecentDeleted:
-            self.RecentDeleted.remove(msg.id)
-            return
+        async for Type,Attachment in self.AssessAttachments(msg.attachments):
+            OriginID = 0
+            File = await Attachment.read()
 
-        Log.debug(f"Removed post '{msg.id}'")
-        Reposts.Remove(msg.id)
-
-    async def Process(self, msg: discord.Message, Attachment: discord.Attachment):
-        Guild = Guilds.Get(msg.guild.id)
-        Type = Attachment.content_type.split("/")[0]
-        OriginID = 0
-        if Attachment.size > 8_000_000:
-            Log.debug(
-                f"File from {msg.id} ignored due to size of {Attachment.size} bytes")
-            return
-
-        File = await Attachment.read()
-
-        if Type == "image":
-            Size = (Attachment.height * Attachment.width)
-            if Size > 10_000_000:
-                Log.debug(
-                    f"Image from {msg.id} ignored due pixel count of {Size} from {msg.author}")
+            if Type == "image":
+                exists, OriginID = Reposts.CheckImage(msg.guild.id, File)
+            elif Type == "video":
+                exists, OriginID = Reposts.CheckVideo(msg.guild.id, File)
             else:
-                OriginID = Reposts.CheckImage(msg.guild.id, File)
-        elif Type == "video":
-            OriginID = Reposts.CheckVideo(msg.guild.id, File)
-        else:
-            Log.debug(f"File from {msg.id} ignored due to invalid file")
+                Log.debug(f"File from {msg.id} ignored due to invalid filetype ({Type})")
 
-        # ToDo: Refactor this messy code
-        if OriginID:
+            # If the message is new, then add it
+            if not exists:
+                await self.Add(msg, Attachment)
+                return 
+            
+            # If original message is deleted, remove it from the list and return
             try:
                 OriginMSG = await msg.channel.fetch_message(OriginID)
             except discord.errors.NotFound:
                 Reposts.Remove(msg.id)
+                await self.Add(msg, Attachment)
+                return
+
+            # If the message is older than the threshold, remove it from the list and return
+            TimeDelta = OriginMSG.created_at - datetime.now()
+            if TimeDelta.total_seconds() > Guild.rTimeout:
+                Reposts.Remove(msg.id)
+                await self.Add(msg, Attachment)
             else:
-                Delta = discord.Message.created_at - datetime.now()
-
-                if Delta < Guild.rTimeout:
-                    BotMSG = await OriginMSG.reply(
-                        Guild.msgRepostDetected.format(
-                            AUTHOR=msg.author.mention,
-                            author=msg.author.name,
-                            ORIGIN=OriginMSG.author.mention,
-                            origin=OriginMSG.author.name
-                        )
+                # Otherwise, call out the original message as a repost
+                BotMSG = await OriginMSG.reply(
+                    Guild.msgRepostDetected.format(
+                        AUTHOR=msg.author.mention,
+                        author=msg.author.name,
+                        ORIGIN=OriginMSG.author.mention,
+                        origin=OriginMSG.author.name
                     )
-                    await BotMSG.delete(delay=10)
+                )
+                await BotMSG.delete(delay=10)
 
-                    if Guild.rDelete:
-                        self.RecentDeleted.append(msg.id)
-                        await msg.delete(delay=5)
-                else:
-                    Reposts.Remove(msg.id)
-                    await self.Add(msg, Attachment)
-        else:
-            await self.Add(msg, Attachment)
-
+                if Guild.rDelete:
+                    await msg.delete(delay=10)
+        
     async def Add(self, msg: discord.Message, Attachment: discord.Attachment):
-        Type = Attachment.content_type.split("/")[0]
         File = await Attachment.read()
+        Type = Attachment.content_type.split("/")[0]
 
         if Type == "image":
             Reposts.AddImage(msg.id, msg.guild.id, File)
         elif Type == "video":
             Reposts.AddVideo(msg.id, msg.guild.id, File)
+
+    async def AssessAttachments(self,Attachments:List[discord.Attachment]) -> Tuple[str,discord.Attachment]:
+        for Attachment in Attachments:
+            Type = Attachment.content_type.split("/")[0]
+            if Attachment.size > 4_000_000:
+                Log.debug(f"File ignored due to size of {Attachment.size} bytes")
+                continue
+            
+            if Type == "image":
+                Size = (Attachment.height * Attachment.width)
+                if Size < 10_000_000:
+                    yield "image",Attachment
+            elif Type == "video":
+                yield "video",Attachment
+            else:
+                Log.debug(f"Filetype {Type} ignored due to unsupported, {Type}")

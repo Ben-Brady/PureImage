@@ -2,7 +2,7 @@
     "rEnabled": true,
     "rDelete": true,
     "rTimeout": 604800,
-    "rThreshold": 5,
+    "rThreshold": 10,
     "rChannels": [864282912631291905],
     "rDetected_msg": ["> {AUTHOR},You seem to have posted a repost"]
 }
