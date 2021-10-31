@@ -1,5 +1,6 @@
 from typing import Dict, List
 from Modules import Logger
+from Modules.dbVersioning import GuildUpgrades
 
 import json
 import random
@@ -19,7 +20,7 @@ class Guild:
     rDelete:bool = True
     rTimeout:int = 604800
     rThreshold:int = 10
-    rChannels:List[int] = [864282912631291905]
+    rChannels:List[int] = [865270701753892896]
     rDetected_msg:List[str] = ["> {AUTHOR},You seem to have posted a repost"]
     
     def __init__(self, ID):
@@ -46,6 +47,7 @@ class Guild:
     @property
     def Settings(self) -> dict:
         return {
+            "Version": "1.1",
             "rEnabled": self.rEnabled,
             "rDelete": self.rDelete,
             "rTimeout": self.rTimeout,
@@ -59,7 +61,7 @@ class Guild:
         return random.choice(self.rDetected_msg)
 
     def Save(self):
-        Log.debug(f"Saving guild{self.ID}'s Settings")
+        Log.debug(f"Saving guild {self.ID}'s Settings")
         with conn:
             conn.execute(
                 "Update GUILDS set SETTINGS = ? where ID = ?;",
@@ -77,7 +79,10 @@ class Guild:
             }
         
         Log.debug(f"Loading Guild {self.ID} from JSON")
-        JSON = json.loads(JSON)
+        JSON:dict = json.loads(JSON)
+        
+        Version = JSON.get("Version",None)
+        JSON = GuildUpgrades[Version](JSON)
         
         #! Data Validation Turned Off
         # for key,value in JSON.items():
