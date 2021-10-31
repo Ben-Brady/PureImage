@@ -42,11 +42,15 @@ class Cog(commands.Cog):
             
             # If original message is deleted, remove it from the list and return
             try:
+                Log.debug(f"Fetching message with id {OriginID}")
                 OriginMSG = await msg.channel.fetch_message(OriginID)
             except discord.errors.NotFound:
-                Reposts.Remove(msg.id)
+                Log.debug(f"Error find message with id {OriginID}")
+                Reposts.Remove(OriginID)
                 await self.Add(msg, Attachment)
                 return
+            else:
+                Log.debug(f"Success finding message with id {OriginID}")
 
             # If the message is older than the threshold, remove it from the list and return
             TimeDelta = OriginMSG.created_at - datetime.now()
