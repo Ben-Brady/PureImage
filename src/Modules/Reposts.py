@@ -113,7 +113,7 @@ def CheckVideo(guildID, file: bytes) -> Tuple[bool,Union[int,None]]:
                 MESSAGES.GuildID = ? and HASHES.Hash = ? and HASHES.Type = 'video'
         """, (guildID, NewHash))
     Hash = Hashes.fetchone()
-    if len(Hash) > 0:
-        return True,Hashes[0]
+    if Hash and len(Hash) > 0:
+        return True, Hash[0]
     else:
-        return False,None
+        return False, None
