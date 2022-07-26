@@ -74,8 +74,10 @@ class Cog(commands.Cog):
         
     async def Add(self, msg: discord.Message, Attachment: discord.Attachment):
         File = await Attachment.read()
-        Type = Attachment.content_type.split("/")[0]
+        if not Attachment.content_type:
+            return
 
+        Type = Attachment.content_type.split("/")[0]
         if Type == "image":
             Reposts.AddImage(msg.id, msg.guild.id, File)
         elif Type == "video":
@@ -83,6 +85,10 @@ class Cog(commands.Cog):
 
     async def AssessAttachments(self,Attachments:List[discord.Attachment]) -> Tuple[str,discord.Attachment]:
         for Attachment in Attachments:
+            if not Attachment.content_type:
+                Log.debug(f"File ignored due to missing filetype")
+                continue
+
             Type = Attachment.content_type.split("/")[0]
             if Attachment.size > 4_000_000:
                 Log.debug(f"File ignored due to size of {Attachment.size} bytes")
